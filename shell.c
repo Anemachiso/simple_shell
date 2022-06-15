@@ -15,9 +15,10 @@ int main(int argc, char **argv[], char *envi[])
 	(void) argc;
 	(void) argv;
 
+	signal(SIGINT, signal_to_handel);
 	do {
 		if (isatty(STDIN_FILENO))
-			write(1, "($) ", 4);
+			prompt();
 		input = _getline();
 		cmd = splitline(input);
 		status = execute_builtin(cmd, envi);

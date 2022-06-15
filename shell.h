@@ -36,7 +36,7 @@ char *_memset(char *addy, char value, unsigned int size);
 void *_calloc(unsigned int members, int size);
 
 /* main functions */
-int main(int argc, char *argv[], char *envp[]);
+int main(int argc, char **argv[], char **envp[]);
 int execute_builtin(char **args, char **env);
 int _execute(char **args);
 int carvePath(char **args);
@@ -56,6 +56,9 @@ int binExecute(char **commands);
 int _env(char **env_var);
 char *_getline(void);
 int _getchar(void);
+void prompt(void);
+void print_error(char *input, int counter, char **argv);
+void signal_to_handel(int sig);
 
 /* main printing functions */
 char *(*getfunction(char n))(va_list);
