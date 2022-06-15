@@ -1,88 +1,65 @@
 #include "shell.h"
 
 /**
- * prompt - Display Shell Prompt
- */
-void prompt(void)
-{
-	PRINTER("$ ");
-}
-/**
- * print_error - Display Error Based on Command and How Many Time Shell Looped
- * @input:User Input
- * @counter:Simple Shell Count Loop
- * @argv:Program Name
- * Return: Void
- */
-void print_error(char *input, int counter, char **argv)
-{
-	char *er;
-
-	PRINTER(argv[0]);
-	PRINTER(": ");
-	er = _itoa(counter);
-	PRINTER(er);
-	free(er);
-	PRINTER(": ");
-	PRINTER(input);
-	PRINTER(": not found\n");
-}
-
-/**
-* _getchar - gets a char
-* Return: a  character
+* _getline - Read The Input By User From Stdin
+* Return: Input
 */
-char _getchar(void)
+char *_getline()
 {
-	char *character, buffer[1];
-	int descript = 0;
+int i, buffsize = BUFSIZE, rd;
+char c = 0;
+char *buff = malloc(buffsize);
 
-	descript = read(STDIN_FILENO, buffer, 1);
-
-	if (descript > 0)
+	if (buff == NULL)
 	{
-		character = buffer;
-		return (*character);
-	}
-	else if (descript == -1)
-	{
-		perror("Error");
-		return (0);
-	}
-	return (EOF);
-}
-
-/**
-* _getline - get a line
-* Return: input pointer
-*/
-char *_getline(void)
-{
-	char *input = NULL;
-	int p, index = 0, buffer_size = BUFFER_SIZE;
-
-	input = _calloc(buffer_size, sizeof(char));
-
-	if (!input)
-	{
-		perror("Error");
+		free(buff);
 		return (NULL);
 	}
-	while (1)
+
+	for (i = 0; c != EOF && c != '\n'; i++)
 	{
-		p = _getchar();
-		if (p == EOF)
+		fflush(stdin);
+		rd = read(STDIN_FILENO, &c, 1);
+		if (rd == 0)
 		{
-			free(input);
+			free(buff);
 			exit(EXIT_SUCCESS);
 		}
-		else if (p == '\n')
+		buff[i] = c;
+		if (buff[0] == '\n')
 		{
-			input[index] = '\0';
-			return (input);
+			free(buff);
+			return ("\0");
 		}
-		input[index] = p;
-		index++;
+		if (i >= buffsize)
+		{
+			buff = _realloc(buff, buffsize, buffsize + 1);
+			if (buff == NULL)
+			{
+				return (NULL);
+			}
+		}
 	}
-	return (input);
+	buff[i] = '\0';
+	hashtag_handle(buff);
+	return (buff);
+}
+
+/**
+ * hashtag_handle - remove everything after #
+ * @buff: input;
+ * Return:void
+ */
+void hashtag_handle(char *buff)
+{
+	int i;
+
+		for (i = 0; buff[i] != '\0'; i++)
+		{
+			if (buff[i] == '#')
+			{
+			buff[i] = '\0';
+			break;
+			}
+	}
 }

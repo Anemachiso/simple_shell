@@ -1,110 +1,90 @@
 #include "shell.h"
 
 /**
-* main - simple shell main function
-* @argc: argument count
-* @argv: argument value
-* @envp: array of environment variable
-* Return: 0
-*/
-int main(int argc, char **argv[], char *envi[])
+ * main - Simple Shell (Hsh)
+ * @argc: Argument Count
+ * @argv:Argument Value
+ * Return: Exit Value By Status
+ */
+
+int main(__attribute__((unused)) int argc, char **argv)
 {
 	char *input, **cmd;
-	int status = 1;
+	int counter = 0, statue = 1, st = 0;
 
-	(void) argc;
-	(void) argv;
-
+	if (argv[1] != NULL)
+		read_file(argv[1], argv);
 	signal(SIGINT, signal_to_handel);
-	do {
+	while (statue)
+	{
+		counter++;
 		if (isatty(STDIN_FILENO))
 			prompt();
 		input = _getline();
-		cmd = splitline(input);
-		status = execute_builtin(cmd, envi);
-		free(input);
-		free(args);
-	} while (status);
-
-	return (0);
-}
-static char *builtin[] = {"cd", "env", "exit"};
-static int built_num = 3;
-int (*builtin_function[]) (char **) = {&_cd, &_env, &_builtinexit};
-/**
-* execute_builtin - gets the builtins and executes them
-* @cmd: cmd ptr
-* @env: env var
-* Return: what the function returns
-*/
-int execute_builtin(char **cmd, char **env)
-{
-
-	int index, exit_ret, exit_args = 0;
-
-	if (*cmd == NULL)
-		return (1);
-	for (index = 0; index < built_num; index++)
-	{
-		if (_strcmp(cmd[0], "env") == 0)
-			return (_env(env));
+		if (input[0] == '\0')
+		{
+			continue;
+		}
+		history(input);
+		cmd = parse_cmd(input);
 		if (_strcmp(cmd[0], "exit") == 0)
 		{
-			exit_ret = _builtinexit(cmd);
-			exit_args = _atoi(cmd[1]);
-			if (exit_args < 0)
-			{
-				write(1, "Illegal exit code", 23);
-				free(args);
-				exit(EXIT_FAILURE);
-			}
-			if (exit_ret == -1)
-				perror("Error on exit");
-			else
-			{
-				free(cmd[0]);
-				free(cmd);
-				exit(exit_ret);
-			}
+			exit_bul(cmd, input, argv, counter);
 		}
-		if (_strcmp(cmd[0], builtin[index]) == 0)
-		return ((*builtin_function[index])(cmd));
-	}
-	return (_execute(cmd));
-}
-
-/**
-* _execute - handles executing the files
-* @cmd: cmd ptr
-* Return: 1 on success, 0 on failure
-*/
-int _execute(char **cmd)
-{
-	int status, execute_status;
-	pid_t process_id;
-
-	if (*cmd == NULL)
-		return (1);
-
-	process_id = fork();
-
-	if (process_id == 0)
-	{
-		if (_strchr(cmd[0], '/') != NULL)
+		else if (check_builtin(cmd) == 0)
 		{
-			execute_status = execve(cmd[0], cmd, environ);
-			if (execute_status == -1)
-			{
-				perror("Execution error");
-				return (0);
-			}
+			st = handle_builtin(cmd, st);
+			free_all(cmd, input);
+			continue;
 		}
 		else
-			return (carvePath(cmd));
+		{
+			st = check_cmd(cmd, input, counter, argv);
+
+		}
+		free_all(cmd, input);
 	}
-	else if (process_id < 0)
-		perror("Failure to fork");
-	else
-		wait(&status);
-	return (1);
+	return (statue);
+}
+/**
+ * check_builtin - check builtin
+ *
+ * @cmd:command to check
+ * Return: 0 Succes -1 Fail
+ */
+int check_builtin(char **cmd)
+{
+	bul_t fun[] = {
+		{"cd", NULL},
+		{"help", NULL},
+		{"echo", NULL},
+		{"history", NULL},
+		{NULL, NULL}
+	};
+	int i = 0;
+		if (*cmd == NULL)
+	{
+		return (-1);
+	}
+
+	while ((fun + i)->command)
+	{
+		if (_strcmp(cmd[0], (fun + i)->command) == 0)
+			return (0);
+		i++;
+	}
+	return (-1);
+}
+/**
+ * creat_envi - Creat Array of Enviroment Variable
+ * @envi: Array of Enviroment Variable
+ * Return: Void
+ */
+void creat_envi(char **envi)
+{
+	int i;
+
+	for (i = 0; environ[i]; i++)
+		envi[i] = _strdup(environ[i]);
+	envi[i] = NULL;
 }
